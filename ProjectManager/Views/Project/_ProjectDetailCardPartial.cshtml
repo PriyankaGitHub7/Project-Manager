@@ -1,0 +1,38 @@
+﻿@model ProjectManager.Models.ProjectViewModel
+
+<style>
+    .card {
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        transition: 0.3s;
+        width: 40%;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+     }
+
+    .container {
+        padding: 2px 16px;
+     }
+</style>
+
+<div class="card" style=
+     "width: 250px; margin-left: 20px; margin-top: 20px; display: inline-block; 
+     border-radius: 10px;">
+    <img class="card-img-top"
+         src="https://3.imimg.com/data3/TE/RL/MY-2020667/plain-grey-500x500.jpg" 
+         alt="Card image cap"
+         width="250" height="180">
+    <div class="container">
+        <h5 class="card-title"> @Html.DisplayFor(model => model.Name)  </h5>
+        <p class="card-text"> @Html.DisplayFor(model => model.Description)</p>
+        <p class="card-text">
+            @Html.DisplayFor(model => model.StartDate) to
+            @Html.DisplayFor(model => model.EndDate)
+        </p>
+        <a class="btn btn-info" asp-action="GetProject"
+           asp-controller="Project" asp-route-id="@Model.Id"
+           asp-route-operation="Update">View Or Edit</a>
+        <br />
+    </div>
+</div>
