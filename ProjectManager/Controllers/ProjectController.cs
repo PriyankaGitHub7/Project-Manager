@@ -50,6 +50,8 @@ namespace ProjectManager.Controllers
                 {
                     _logger.LogInformation(String.Format("Could not find any project with the Id: {0}", id));
                 }
+                /* Operation is Add Or Update, which determines
+                the controls to be displayed(like Delete button) */
                 ViewBag.Operation = operation;
                 return PartialView("_AddProjectPartial", project);
             }

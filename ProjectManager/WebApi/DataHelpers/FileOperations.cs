@@ -10,6 +10,7 @@ namespace ProjectManager.WebApi.DataHelpers
     public class FileOperations
     {
         public string FILE_PATH = Directory.GetCurrentDirectory() + "//projects.json";
+        public string PROJECT_NOT_FOUND_MESSAGE = "No Project found with the given Id";
 
         /// <summary>
         /// Adds the given project to the file and returns success or failure
@@ -25,7 +26,7 @@ namespace ProjectManager.WebApi.DataHelpers
             {
                 var projectList = GetAllProjects();
                 // For the first project, set Id to be 1
-                if (!File.Exists(FILE_PATH) || !projectList.Any())
+                if (!projectList.Any())
                 {
                     project.Id = 1;
                     projectList.Add(project);
@@ -76,7 +77,15 @@ namespace ProjectManager.WebApi.DataHelpers
         {
             try
             {
-                return GetResponse<ProjectViewModel>(true, GetSingleProject(Id), "");
+                if(GetSingleProject(Id).Any())
+                {
+                    return GetResponse<ProjectViewModel>(true, GetSingleProject(Id).Single(), "");
+                }
+                else
+                {
+                    return GetResponse<ProjectViewModel>(false, null, PROJECT_NOT_FOUND_MESSAGE);
+                }
+               
             }
             catch(Exception ex)
             {
@@ -94,13 +103,20 @@ namespace ProjectManager.WebApi.DataHelpers
         {
             try
             {
-                var allProjects = GetAllProjects();
-                var indexToUpdate = allProjects.FindIndex(a => a.Id == project.Id);
-                // Remove the project with old data and add the new one at the same place
-                allProjects.RemoveAt(indexToUpdate);
-                allProjects.Insert(indexToUpdate, project);
-                WriteUpdatedProjectList(allProjects);
-                return GetResponse<ProjectViewModel>(true, project, "");
+                if(GetSingleProject(project.Id).Any())
+                {
+                    var allProjects = GetAllProjects();
+                    var indexToUpdate = allProjects.FindIndex(a => a.Id == project.Id);
+                    // Remove the project with old data and add the new one at the same place
+                    allProjects.RemoveAt(indexToUpdate);
+                    allProjects.Insert(indexToUpdate, project);
+                    WriteUpdatedProjectList(allProjects);
+                    return GetResponse<ProjectViewModel>(true, project, "");
+                }
+                else
+                {
+                    return GetResponse<ProjectViewModel>(false, null, PROJECT_NOT_FOUND_MESSAGE);
+                }
             }
             catch (Exception ex)
             {
@@ -117,10 +133,17 @@ namespace ProjectManager.WebApi.DataHelpers
         {
             try
             {
-                var allProjects = GetAllProjects();
-                allProjects.RemoveAll(a => a.Id == Id);
-                WriteUpdatedProjectList(allProjects);
-                return GetResponse<ProjectViewModel>(true, null, "");
+                if(GetSingleProject(Id).Any())
+                {
+                    var allProjects = GetAllProjects();
+                    allProjects.RemoveAll(a => a.Id == Id);
+                    WriteUpdatedProjectList(allProjects);
+                    return GetResponse<ProjectViewModel>(true, null, "");
+                }
+                else
+                {
+                    return GetResponse<ProjectViewModel>(false, null, PROJECT_NOT_FOUND_MESSAGE);
+                }
             }
             catch(Exception ex)
             {
@@ -129,18 +152,24 @@ namespace ProjectManager.WebApi.DataHelpers
         }
 
         // Filters the projects based on the given Id and returns the matched entry
-        private ProjectViewModel GetSingleProject(Int64 Id)
+        private IEnumerable<ProjectViewModel> GetSingleProject(Int64 Id)
         {
-            return GetAllProjects().Where(a => a.Id == Id).Single();
+            return GetAllProjects().Where(a => a.Id == Id);
         }
 
         // Reads the json project data from the file and deserializes it 
         // into a list of projects.
         private List<ProjectViewModel> GetAllProjects()
         {
-            var jsonProjects = File.ReadAllText(FILE_PATH);
-            var projects = JsonConvert.DeserializeObject<List<ProjectViewModel>>
-                           (jsonProjects);
+            var projects = new List<ProjectViewModel>();
+
+            if (File.Exists(FILE_PATH))
+            {
+                var jsonProjects = File.ReadAllText(FILE_PATH);
+                projects = JsonConvert.DeserializeObject<List<ProjectViewModel>>
+               (jsonProjects);
+            }        
+
             return projects;
         }
 
